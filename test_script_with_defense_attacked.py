@@ -16,7 +16,7 @@ from torch.autograd import Variable
 import torch.nn.init as nninit
 from torch.nn.parameter import Parameter
 import torchvision.transforms.functional as TF
-from vit import VisionTransformer
+from vit_with_defense import VisionTransformer
 
 #Added for Attack
 from PIL import Image
@@ -52,11 +52,14 @@ def test(model,test_loader):
     for data,target in test_loader:
         data = data.cuda()
         target = target.cuda()
+        data16x16 = torch.nn.functional.interpolate(data, size=(16, 16),mode='bilinear', align_corners=False)
         with torch.no_grad():
-            out = torch.nn.Softmax(dim=1).cuda()(model(data))
+            out = torch.nn.Softmax(dim=1).cuda()(model(data)) 
+            out16x16 = torch.nn.Softmax(dim=1).cuda()(model(data16x16))
                     
         act,pred = out.max(1, keepdim=True)
-        correct += pred.eq(target.view_as(pred)).sum().cpu()
+        _,pred16x16 = out16x16.max(1, keepdim=True)
+        correct += (pred16x16==target.view_as(pred16x16))[pred16x16==pred].sum().cpu()
         avg_act += act.sum().data
 
     return 100. * float(correct) / len(test_loader.dataset),100. * float(avg_act) / len(test_loader.dataset)
@@ -242,8 +245,6 @@ def create_adversary(model, epsilon, norm):
 
 
 if __name__=="__main__":
-        #Keep track of run time
-        start = time.time()
         model = NN()
         model.cuda()
 
@@ -252,12 +253,6 @@ if __name__=="__main__":
             model.load_state_dict(chk["model"]);
             del chk
         torch.cuda.empty_cache();
-        
-        #acc,_ = test(model,test_loader)
         acc,_ = attack(model,test_loader)
         print('Test accuracy: ',acc)
-        end = time.time()
-        print("Elapsed Time")
-        print(end - start)
-
 
