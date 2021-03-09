@@ -11,19 +11,20 @@ pip install advertorch --user
 ```
 
 ## Run Code on newton:
-``` 
-$ git clone https://github.com/LegendaryTom/AdvCV_P2.git
 ```
-Add "mdl.pth" from course to AdvCV_P2/ directory. Then:
+$ cd Part1_Src/
+$ sbatch p2.slurm
 ```
-$ cd AdvCV_P2/
-$ p2.slurm
+```
+$ cd Part2_Src/
+$ sbatch p2p2.slurm
 ```
 
 ## Run code on local machine:
 ```
 $ conda activate
 $ python p2.py 
+$ python p2p2.py 
 ```
 
 
